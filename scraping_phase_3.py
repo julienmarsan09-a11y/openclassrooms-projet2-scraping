@@ -94,15 +94,24 @@ script_dir = Path(__file__).resolve().parent
 # Pour chaque catégorie
 for categorie_url in url_categories:
 
-    # Récupération de la page catégories
-    response = requests.get(categorie_url)
-    soup = BeautifulSoup(response.content, "html.parser")
-
     # Récupération des liens des livres de la catégorie
     url_product_page = []
-    for links in soup.select("h3 a"):
-        link = links.get("href").replace("../", "")
-        url_product_page.append("https://books.toscrape.com/catalogue/" + link)
+    page_url = categorie_url
+
+    while page_url:
+        response = requests.get(page_url)
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        for links in soup.select("h3 a"):
+            link = links.get("href").replace("../", "")
+            url_product_page.append("https://books.toscrape.com/catalogue/" + link)
+
+        next_page = soup.find("li", class_= "next")
+        if next_page:
+            next_href = next_page.find("a")["href"]
+            page_url = categorie_url.replace("index.html", next_href)
+        else:
+            page_url = None
 
     # Extraction des données de chaque livre
     all_books = []
@@ -110,12 +119,14 @@ for categorie_url in url_categories:
         donnees = extract_data_books(product_url)
         all_books.append(donnees)
 
+    print(f"Nombre de livres : {len(url_product_page)}")
+
 
     # Chemin du fichier CSV dans le dossier donnees_extraites
-    categorie_nom = categorie_url.split("/")[-2]
-    csv_file = script_dir / "donnees_extraites" / (categorie_nom + ".csv")
+    categorie_nom = categorie_url.split("/")[-2].rsplit("_", 1)[0]
+    csv_file = script_dir / "donnees_extraites" / "csv" / (categorie_nom + ".csv")
 
-    # Création du fichier csv
+    # Création des fichiers csv
     with csv_file.open(mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=',')
         writer.writerow(header)
