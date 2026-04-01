@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 import csv
 from pathlib import Path
 
+# Chemin du dossier où se trouve le script
+script_dir = Path(__file__).resolve().parent
 
 # Récupération de l'url de la page d'accueil
 url = "https://books.toscrape.com/"
@@ -24,8 +26,8 @@ for links in soup.select(".nav-list ul li a"):
 
 # Fonction Extraction des données
 def extract_data_books(product_page_url):
-    response = requests.get(product_page_url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    page_response = requests.get(product_page_url)
+    soup = BeautifulSoup(page_response.content, 'html.parser')
 
     # Récupération du code upc
     universal_product_code = soup.find("th", string="UPC").find_next_sibling("td").string
@@ -65,7 +67,7 @@ def extract_data_books(product_page_url):
     review_rating = ratings[soup.find("p", class_="star-rating")["class"][1]]
 
     # Récupération de l'url de l'image du livre
-    image_url = soup.find("img").get("src").replace("../../", "http://books.toscrape.com/")
+    image_url = soup.find("img").get("src").replace("../../", "https://books.toscrape.com/")
 
 
     # Récupération des données
@@ -86,9 +88,6 @@ def extract_data_books(product_page_url):
 
 # Création d'un header pour le csv pour les en-têtes
 header = ["product page url", "universal product code", "title" ,"price including tax", "price excluding tax", "number available", "product description", "category", "review rating", "image url"]
-
-# Chemin du dossier où se trouve le script
-script_dir = Path(__file__).resolve().parent
 
 
 # Pour chaque catégorie
@@ -125,10 +124,10 @@ for categorie_url in url_categories:
     # Chemin du fichier CSV dans le dossier donnees_extraites
     categorie_nom = categorie_url.split("/")[-2].rsplit("_", 1)[0]
     csv_file = script_dir / "donnees_extraites" / "csv" / (categorie_nom + ".csv")
+    csv_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Création des fichiers csv
     with csv_file.open(mode='w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f, delimiter=',')
-        writer.writerow(header)
-        for livre in all_books:
-            writer.writerow(livre.values())
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writeheader()
+        writer.writerows(all_books)
