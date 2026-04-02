@@ -27,9 +27,9 @@ cd openclassrooms-projet2-scraping
 
 2. Créez et activez un environnement virtuel :
 ```
-python -m venv venv
-venv\Scripts\activate       # Windows
-source venv/bin/activate    # Linux / macOS
+python -m venv env
+env\Scripts\activate         # Windows
+source env/bin/activate      # Linux / macOS
 ```
 
 3. Installez les dépendances :
