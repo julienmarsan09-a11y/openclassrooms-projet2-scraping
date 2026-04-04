@@ -28,7 +28,7 @@ cd openclassrooms-projet2-scraping
 2. Créez et activez un environnement virtuel :
 ```
 python -m venv env
-env\Scripts\activate         # Windows
+source env/Scripts/activate         # Windows (Git Bash)
 source env/bin/activate      # Linux / macOS
 ```
 
